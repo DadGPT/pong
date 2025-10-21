@@ -372,3 +372,6 @@ document.addEventListener('keyup', keyUp);
 // Initialize game
 initBricks();
 draw();
+
+// Auto-start the game
+startGame();

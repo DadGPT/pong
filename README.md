@@ -1,4 +1,4 @@
-# Ballbreaker
+# SnakeBreaker
 
 A classic brick-breaking game built with vanilla JavaScript, HTML5 Canvas, and CSS.
 
