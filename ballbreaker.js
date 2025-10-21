@@ -430,6 +430,35 @@ function update(currentTime = 0) {
     }
 }
 
+// Helper function to rotate snake direction
+function rotateSnakeClockwise() {
+    const current = snake.nextDirection;
+    // Right → Down → Left → Up → Right
+    if (current.x === 1 && current.y === 0) {
+        snake.nextDirection = { x: 0, y: 1 };  // Right to Down
+    } else if (current.x === 0 && current.y === 1) {
+        snake.nextDirection = { x: -1, y: 0 }; // Down to Left
+    } else if (current.x === -1 && current.y === 0) {
+        snake.nextDirection = { x: 0, y: -1 }; // Left to Up
+    } else if (current.x === 0 && current.y === -1) {
+        snake.nextDirection = { x: 1, y: 0 };  // Up to Right
+    }
+}
+
+function rotateSnakeCounterClockwise() {
+    const current = snake.nextDirection;
+    // Right → Up → Left → Down → Right
+    if (current.x === 1 && current.y === 0) {
+        snake.nextDirection = { x: 0, y: -1 }; // Right to Up
+    } else if (current.x === 0 && current.y === -1) {
+        snake.nextDirection = { x: -1, y: 0 }; // Up to Left
+    } else if (current.x === -1 && current.y === 0) {
+        snake.nextDirection = { x: 0, y: 1 };  // Left to Down
+    } else if (current.x === 0 && current.y === 1) {
+        snake.nextDirection = { x: 1, y: 0 };  // Down to Right
+    }
+}
+
 // Keyboard controls
 function keyDown(e) {
     // Paddle controls (arrows only)
@@ -439,16 +468,14 @@ function keyDown(e) {
         paddle.dx = -paddle.speed;
     }
 
-    // Snake controls (q, w, s, z)
-    // q = left, w = up, s = right, z = down
-    if (e.key === 'q' && snake.direction.x !== 1) {
-        snake.nextDirection = { x: -1, y: 0 };
-    } else if (e.key === 'w' && snake.direction.y !== 1) {
-        snake.nextDirection = { x: 0, y: -1 };
-    } else if (e.key === 's' && snake.direction.x !== -1) {
-        snake.nextDirection = { x: 1, y: 0 };
-    } else if (e.key === 'z' && snake.direction.y !== -1) {
-        snake.nextDirection = { x: 0, y: 1 };
+    // Snake rotation controls
+    // Spacebar = rotate clockwise
+    // Z = rotate counter-clockwise
+    if (e.key === ' ') {
+        e.preventDefault(); // Prevent page scroll
+        rotateSnakeClockwise();
+    } else if (e.key === 'z' || e.key === 'Z') {
+        rotateSnakeCounterClockwise();
     }
 }
 
