@@ -6,149 +6,363 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #1a1a2e;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 150, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(255, 0, 150, 0.1) 0%, transparent 50%);
+    animation: bgPulse 15s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes bgPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    background: #1a1a2e;
+    padding: 40px;
+    border-radius: 30px;
+    box-shadow:
+        20px 20px 60px #0f0f18,
+        -20px -20px 60px #252544;
     max-width: 900px;
+    animation: containerFloat 6s ease-in-out infinite;
+}
+
+@keyframes containerFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
 }
 
 h1 {
     text-align: center;
-    color: #2C3E50;
-    font-size: 48px;
-    margin-bottom: 20px;
+    color: #00d4ff;
+    font-size: 56px;
+    margin-bottom: 30px;
     text-transform: uppercase;
-    letter-spacing: 3px;
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    letter-spacing: 8px;
+    background: linear-gradient(45deg, #00d4ff, #9000ff, #ff0080);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: gradientShift 3s ease-in-out infinite, titleBounce 2s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+    filter: drop-shadow(0 0 20px rgba(144, 0, 255, 0.5));
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes titleBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .game-info {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    color: white;
+    margin-bottom: 30px;
+    padding: 25px;
+    background: #1a1a2e;
+    border-radius: 20px;
+    box-shadow:
+        inset 8px 8px 16px #0f0f18,
+        inset -8px -8px 16px #252544;
+    animation: infoPulse 2s ease-in-out infinite;
+}
+
+@keyframes infoPulse {
+    0%, 100% { box-shadow:
+        inset 8px 8px 16px #0f0f18,
+        inset -8px -8px 16px #252544; }
+    50% { box-shadow:
+        inset 10px 10px 20px #0f0f18,
+        inset -10px -10px 20px #252544; }
 }
 
 .game-info > div {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
+    color: #8b8b9f;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.game-info > div:hover {
+    transform: scale(1.2) rotate(5deg);
+    color: #00d4ff;
 }
 
 .game-info span {
-    color: #FFD700;
-    font-size: 24px;
-    margin-left: 5px;
+    color: #00d4ff;
+    font-size: 28px;
+    margin-left: 10px;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+    animation: numberGlow 2s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes numberGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(0, 212, 255, 0.8); }
+    50% { text-shadow: 0 0 25px rgba(0, 212, 255, 1), 0 0 35px rgba(144, 0, 255, 0.5); }
+}
+
+/* Score update animation */
+@keyframes scoreUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.5) rotate(10deg); color: #ff0080; }
+    100% { transform: scale(1) rotate(0deg); }
 }
 
 #gameCanvas {
     display: block;
-    border: 4px solid #2C3E50;
-    border-radius: 10px;
-    background: #ECF0F1;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 4px solid #252544;
+    border-radius: 20px;
+    background: #16162a;
+    box-shadow:
+        inset 5px 5px 15px #0a0a12,
+        inset -5px -5px 15px #1f1f38,
+        0 20px 60px rgba(0, 212, 255, 0.2);
     margin: 0 auto;
+    transition: all 0.5s ease;
+    animation: canvasPulse 4s ease-in-out infinite;
+}
+
+@keyframes canvasPulse {
+    0%, 100% {
+        box-shadow:
+            inset 5px 5px 15px #0a0a12,
+            inset -5px -5px 15px #1f1f38,
+            0 20px 60px rgba(0, 212, 255, 0.2);
+    }
+    50% {
+        box-shadow:
+            inset 5px 5px 15px #0a0a12,
+            inset -5px -5px 15px #1f1f38,
+            0 20px 60px rgba(144, 0, 255, 0.4);
+    }
+}
+
+#gameCanvas:hover {
+    transform: scale(1.02);
 }
 
 .controls {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 20px;
+    margin-top: 30px;
 }
 
 button {
-    padding: 12px 30px;
-    font-size: 16px;
+    padding: 18px 40px;
+    font-size: 18px;
     font-weight: bold;
     border: none;
-    border-radius: 8px;
+    border-radius: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    background: #1a1a2e;
+    color: #00d4ff;
+    box-shadow:
+        8px 8px 16px #0f0f18,
+        -8px -8px 16px #252544;
+    position: relative;
+    overflow: hidden;
 }
 
-#startBtn {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    color: white;
+button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 212, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
 }
 
-#startBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+button:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
-#pauseBtn {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-}
-
-#pauseBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
-}
-
-#resetBtn {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    color: white;
-}
-
-#resetBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(250, 112, 154, 0.4);
+button:hover {
+    transform: translateY(-8px) scale(1.1);
+    box-shadow:
+        12px 12px 24px #0f0f18,
+        -12px -12px 24px #252544,
+        0 10px 40px rgba(0, 212, 255, 0.4);
+    color: #fff;
 }
 
 button:active {
-    transform: translateY(0);
+    transform: translateY(2px) scale(0.95);
+    box-shadow:
+        inset 4px 4px 8px #0f0f18,
+        inset -4px -4px 8px #252544;
+    animation: buttonPress 0.3s ease;
+}
+
+@keyframes buttonPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(0.95); }
+}
+
+#startBtn {
+    color: #00ff88;
+    animation: startBtnPulse 2s ease-in-out infinite;
+}
+
+@keyframes startBtnPulse {
+    0%, 100% {
+        box-shadow:
+            8px 8px 16px #0f0f18,
+            -8px -8px 16px #252544;
+    }
+    50% {
+        box-shadow:
+            8px 8px 16px #0f0f18,
+            -8px -8px 16px #252544,
+            0 0 30px rgba(0, 255, 136, 0.3);
+    }
+}
+
+#pauseBtn {
+    color: #ff00ff;
+}
+
+#resetBtn {
+    color: #ff8800;
 }
 
 .instructions {
-    margin-top: 25px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 10px;
-    border-left: 5px solid #667eea;
+    margin-top: 30px;
+    padding: 25px;
+    background: #1a1a2e;
+    border-radius: 20px;
+    box-shadow:
+        inset 8px 8px 16px #0f0f18,
+        inset -8px -8px 16px #252544;
+    border-left: 5px solid #00d4ff;
+    animation: instructionsSlide 1s ease-out;
+}
+
+@keyframes instructionsSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .instructions h3 {
-    color: #2C3E50;
-    margin-bottom: 10px;
-    font-size: 20px;
+    color: #00d4ff;
+    margin-bottom: 15px;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    animation: instructionsTitleGlow 3s ease-in-out infinite;
+}
+
+@keyframes instructionsTitleGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 30px rgba(144, 0, 255, 0.4);
+    }
 }
 
 .instructions ul {
-    list-style-position: inside;
-    color: #555;
-    line-height: 1.8;
+    list-style: none;
+    color: #8b8b9f;
+    line-height: 2;
 }
 
 .instructions li {
-    margin: 5px 0;
+    margin: 10px 0;
+    padding-left: 25px;
+    position: relative;
+    transition: all 0.3s ease;
+    animation: listItemFadeIn 0.5s ease-out backwards;
+}
+
+.instructions li:nth-child(1) { animation-delay: 0.1s; }
+.instructions li:nth-child(2) { animation-delay: 0.2s; }
+.instructions li:nth-child(3) { animation-delay: 0.3s; }
+.instructions li:nth-child(4) { animation-delay: 0.4s; }
+.instructions li:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes listItemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.instructions li::before {
+    content: '▹';
+    position: absolute;
+    left: 0;
+    color: #00d4ff;
+    font-size: 20px;
+    animation: arrowBounce 2s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+
+.instructions li:hover {
+    color: #00d4ff;
+    transform: translateX(10px);
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 @media (max-width: 900px) {
     .container {
-        padding: 15px;
+        padding: 20px;
     }
 
     h1 {
-        font-size: 32px;
+        font-size: 36px;
+        letter-spacing: 4px;
     }
 
     #gameCanvas {
@@ -158,7 +372,7 @@ button:active {
 
     .game-info {
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
     }
 
     .controls {
@@ -167,5 +381,27 @@ button:active {
 
     button {
         width: 100%;
+    }
+}
+
+/* Loading/spinning animations for visual feedback */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+/* Glow effect for game elements */
+@keyframes glow {
+    0%, 100% {
+        filter: drop-shadow(0 0 5px currentColor);
+    }
+    50% {
+        filter: drop-shadow(0 0 20px currentColor);
     }
 }

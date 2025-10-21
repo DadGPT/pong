@@ -9,6 +9,45 @@ let score = 0;
 let lives = 3;
 let level = 1;
 
+// Particle system
+let particles = [];
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 8;
+        this.vy = (Math.random() - 0.5) * 8;
+        this.life = 1;
+        this.decay = Math.random() * 0.015 + 0.015;
+        this.size = Math.random() * 4 + 2;
+        this.color = color;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.1; // gravity
+        this.life -= this.decay;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// Ball trail
+let ballTrail = [];
+const maxTrailLength = 15;
+
 // Paddle
 const paddle = {
     width: 100,
@@ -72,8 +111,8 @@ const brickConfig = {
 
 let bricks = [];
 
-// Colors for different brick rows
-const brickColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+// Colors for different brick rows (dark mode neon colors)
+const brickColors = ['#ff0080', '#00d4ff', '#9000ff', '#00ff88', '#ff8800'];
 
 // Initialize bricks
 function initBricks() {
@@ -93,94 +132,156 @@ function initBricks() {
 
 // Draw paddle
 function drawPaddle() {
-    ctx.fillStyle = '#2C3E50';
-    ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    ctx.save();
 
-    // Add gradient effect
+    // Neon glow effect
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#00d4ff';
+
+    // Gradient effect
     const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
-    gradient.addColorStop(0, '#34495E');
-    gradient.addColorStop(1, '#2C3E50');
+    gradient.addColorStop(0, '#00d4ff');
+    gradient.addColorStop(1, '#0080ff');
     ctx.fillStyle = gradient;
     ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 
-    // Add border
-    ctx.strokeStyle = '#1A252F';
-    ctx.lineWidth = 2;
+    // Border with glow
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 3;
     ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+    ctx.restore();
 }
 
 // Draw ball
 function drawBall() {
+    // Add to trail
+    ballTrail.push({ x: ball.x, y: ball.y });
+    if (ballTrail.length > maxTrailLength) {
+        ballTrail.shift();
+    }
+
+    // Draw trail
+    ctx.save();
+    ballTrail.forEach((pos, index) => {
+        const alpha = index / ballTrail.length;
+        ctx.globalAlpha = alpha * 0.5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff0080';
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, ball.radius * alpha, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff0080';
+        ctx.fill();
+    });
+    ctx.restore();
+
+    // Draw main ball with glow
+    ctx.save();
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = '#ff0080';
+
+    // Gradient ball
+    const gradient = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 0, ball.x, ball.y, ball.radius);
+    gradient.addColorStop(0, '#ffaacc');
+    gradient.addColorStop(1, '#ff0080');
+
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#E74C3C';
+    ctx.fillStyle = gradient;
     ctx.fill();
 
-    // Add shine effect
+    // Shine effect
+    ctx.shadowBlur = 0;
     ctx.beginPath();
     ctx.arc(ball.x - 2, ball.y - 2, ball.radius / 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.fill();
 
-    ctx.closePath();
+    ctx.restore();
 }
 
 // Draw snake
 function drawSnake() {
+    ctx.save();
+
     snake.segments.forEach((segment, index) => {
         const x = segment.x * snakeConfig.gridSize;
         const y = segment.y * snakeConfig.gridSize;
         const size = snakeConfig.gridSize - 2;
 
-        // Draw snake segment with rounded corners for better visibility
+        // Animated glow
+        const glowIntensity = 15 + Math.sin(Date.now() / 200) * 10;
+        ctx.shadowBlur = glowIntensity;
+
         if (index === 0) {
-            // Head is brighter green
-            ctx.fillStyle = '#27AE60';
+            // Head is brighter with stronger glow
+            ctx.shadowColor = '#00ff88';
+            const gradient = ctx.createLinearGradient(x, y, x + size, y + size);
+            gradient.addColorStop(0, '#00ff88');
+            gradient.addColorStop(1, '#00cc66');
+            ctx.fillStyle = gradient;
         } else {
-            ctx.fillStyle = '#2ECC71';
+            // Body segments
+            ctx.shadowColor = '#00ff88';
+            ctx.fillStyle = '#00dd77';
         }
+
         ctx.fillRect(x, y, size, size);
 
-        // Add prominent border
-        ctx.strokeStyle = '#1E8449';
+        // Prominent glowing border
+        ctx.strokeStyle = '#00ffaa';
         ctx.lineWidth = 3;
         ctx.strokeRect(x, y, size, size);
 
-        // Add eye dots on head
+        // Add glowing eye dots on head
         if (index === 0) {
-            ctx.fillStyle = '#FFF';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = '#ffff00';
             ctx.fillRect(x + 4, y + 4, 4, 4);
             ctx.fillRect(x + 11, y + 4, 4, 4);
         }
     });
+
+    ctx.restore();
 }
 
 // Draw bricks
 function drawBricks() {
+    ctx.save();
+
     for (let c = 0; c < brickConfig.columnCount; c++) {
         for (let r = 0; r < brickConfig.rowCount; r++) {
             if (bricks[c][r].status === 1) {
                 const brick = bricks[c][r];
 
+                // Animated glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = brick.color;
+
                 // Draw brick with gradient
-                const gradient = ctx.createLinearGradient(brick.x, brick.y, brick.x, brick.y + brickConfig.height);
+                const gradient = ctx.createLinearGradient(brick.x, brick.y, brick.x + brickConfig.width, brick.y + brickConfig.height);
                 gradient.addColorStop(0, brick.color);
-                gradient.addColorStop(1, shadeColor(brick.color, -20));
+                gradient.addColorStop(1, shadeColor(brick.color, -30));
 
                 ctx.fillStyle = gradient;
                 ctx.fillRect(brick.x, brick.y, brickConfig.width, brickConfig.height);
 
-                // Add border
-                ctx.strokeStyle = shadeColor(brick.color, -40);
+                // Glowing border
+                ctx.shadowBlur = 8;
+                ctx.strokeStyle = brick.color;
                 ctx.lineWidth = 2;
                 ctx.strokeRect(brick.x, brick.y, brickConfig.width, brickConfig.height);
 
                 // Add highlight
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.fillRect(brick.x, brick.y, brickConfig.width, brickConfig.height / 3);
             }
         }
     }
+
+    ctx.restore();
 }
 
 // Helper function to shade colors
@@ -329,6 +430,16 @@ function brickCollision() {
                     brick.status = 0;
                     score += 10;
 
+                    // Create particle explosion
+                    const centerX = brick.x + brickConfig.width / 2;
+                    const centerY = brick.y + brickConfig.height / 2;
+                    for (let i = 0; i < 20; i++) {
+                        particles.push(new Particle(centerX, centerY, brick.color));
+                    }
+
+                    // Animate score update
+                    animateScoreUpdate();
+
                     // Check if all bricks are destroyed
                     if (checkLevelComplete()) {
                         nextLevel();
@@ -337,6 +448,15 @@ function brickCollision() {
             }
         }
     }
+}
+
+// Animate score update
+function animateScoreUpdate() {
+    const scoreElement = document.getElementById('score').parentElement.querySelector('span');
+    scoreElement.style.animation = 'none';
+    setTimeout(() => {
+        scoreElement.style.animation = 'scoreUpdate 0.5s ease';
+    }, 10);
 }
 
 // Check if level is complete
@@ -376,23 +496,55 @@ function resetBall() {
 // Game over
 function gameOver() {
     gameRunning = false;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+
+    // Create dramatic particle burst
+    for (let i = 0; i < 100; i++) {
+        particles.push(new Particle(
+            canvas.width / 2,
+            canvas.height / 2,
+            ['#ff0080', '#00d4ff', '#9000ff', '#00ff88'][Math.floor(Math.random() * 4)]
+        ));
+    }
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#FFF';
-    ctx.font = '48px Arial';
+    ctx.save();
+    // Game Over text with glow
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = '#ff0080';
+    ctx.fillStyle = '#ff0080';
+    ctx.font = 'bold 56px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 30);
 
-    ctx.font = '24px Arial';
+    // Score with different color
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = '#00d4ff';
+    ctx.fillStyle = '#00d4ff';
+    ctx.font = 'bold 28px Arial';
     ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 30);
-    ctx.fillText('Press Start to play again', canvas.width / 2, canvas.height / 2 + 70);
+
+    // Instructions
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#00ff88';
+    ctx.fillStyle = '#00ff88';
+    ctx.font = '20px Arial';
+    ctx.fillText('Press Start to play again', canvas.width / 2, canvas.height / 2 + 80);
+    ctx.restore();
 }
 
 // Draw everything
 function draw() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update and draw particles
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
 
     // Draw game elements
     drawBricks();
@@ -401,15 +553,19 @@ function draw() {
     drawSnake();
     drawInfo();
 
-    // Show pause message
+    // Show pause message with neon styling
     if (gamePaused) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = '#FFF';
-        ctx.font = '36px Arial';
+        ctx.save();
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = '#00d4ff';
+        ctx.fillStyle = '#00d4ff';
+        ctx.font = 'bold 48px Arial';
         ctx.textAlign = 'center';
         ctx.fillText(`Level ${level}!`, canvas.width / 2, canvas.height / 2);
+        ctx.restore();
     }
 }
 
@@ -523,6 +679,11 @@ function resetGame() {
     initBricks();
     initSnake();
     lastSnakeMove = 0;
+
+    // Clear particles and trail
+    particles = [];
+    ballTrail = [];
+
     draw();
 
     document.getElementById('pauseBtn').textContent = 'Pause';
