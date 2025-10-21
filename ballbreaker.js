@@ -37,9 +37,9 @@ const snakeConfig = {
 
 let snake = {
     segments: [
-        { x: 10, y: 10 },
-        { x: 9, y: 10 },
-        { x: 8, y: 10 }
+        { x: 5, y: 25 },
+        { x: 4, y: 25 },
+        { x: 3, y: 25 }
     ],
     direction: { x: 1, y: 0 },
     nextDirection: { x: 1, y: 0 }
@@ -49,10 +49,11 @@ let lastSnakeMove = 0;
 
 // Initialize snake
 function initSnake() {
+    // Start snake in bottom-left area, away from bricks and paddle
     snake.segments = [
-        { x: 10, y: 10 },
-        { x: 9, y: 10 },
-        { x: 8, y: 10 }
+        { x: 5, y: 25 },
+        { x: 4, y: 25 },
+        { x: 3, y: 25 }
     ];
     snake.direction = { x: 1, y: 0 };
     snake.nextDirection = { x: 1, y: 0 };
@@ -129,26 +130,27 @@ function drawSnake() {
     snake.segments.forEach((segment, index) => {
         const x = segment.x * snakeConfig.gridSize;
         const y = segment.y * snakeConfig.gridSize;
+        const size = snakeConfig.gridSize - 2;
 
-        // Draw snake segment
+        // Draw snake segment with rounded corners for better visibility
         if (index === 0) {
-            // Head is brighter
+            // Head is brighter green
             ctx.fillStyle = '#27AE60';
         } else {
             ctx.fillStyle = '#2ECC71';
         }
-        ctx.fillRect(x, y, snakeConfig.gridSize - 2, snakeConfig.gridSize - 2);
+        ctx.fillRect(x, y, size, size);
 
-        // Add border
-        ctx.strokeStyle = '#229954';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, snakeConfig.gridSize - 2, snakeConfig.gridSize - 2);
+        // Add prominent border
+        ctx.strokeStyle = '#1E8449';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, size, size);
 
         // Add eye dots on head
         if (index === 0) {
             ctx.fillStyle = '#FFF';
-            ctx.fillRect(x + 5, y + 5, 3, 3);
-            ctx.fillRect(x + 12, y + 5, 3, 3);
+            ctx.fillRect(x + 4, y + 4, 4, 4);
+            ctx.fillRect(x + 11, y + 4, 4, 4);
         }
     });
 }
@@ -260,6 +262,12 @@ function moveBall() {
 
 // Move snake
 function moveSnake(currentTime) {
+    // Initialize lastSnakeMove if this is the first move
+    if (lastSnakeMove === 0) {
+        lastSnakeMove = currentTime;
+        return;
+    }
+
     if (currentTime - lastSnakeMove < snakeConfig.speed) {
         return;
     }
@@ -458,6 +466,10 @@ document.getElementById('resetBtn').addEventListener('click', resetGame);
 
 function startGame() {
     if (!gameRunning) {
+        // If game ended (no lives left), reset first
+        if (lives <= 0) {
+            resetGame();
+        }
         gameRunning = true;
         gamePaused = false;
         update();
