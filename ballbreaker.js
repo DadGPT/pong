@@ -29,6 +29,35 @@ const ball = {
     dy: -4
 };
 
+// Snake
+const snakeConfig = {
+    gridSize: 20,
+    speed: 150 // milliseconds per move
+};
+
+let snake = {
+    segments: [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+    ],
+    direction: { x: 1, y: 0 },
+    nextDirection: { x: 1, y: 0 }
+};
+
+let lastSnakeMove = 0;
+
+// Initialize snake
+function initSnake() {
+    snake.segments = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+    ];
+    snake.direction = { x: 1, y: 0 };
+    snake.nextDirection = { x: 1, y: 0 };
+}
+
 // Bricks
 const brickConfig = {
     rowCount: 5,
@@ -93,6 +122,35 @@ function drawBall() {
     ctx.fill();
 
     ctx.closePath();
+}
+
+// Draw snake
+function drawSnake() {
+    snake.segments.forEach((segment, index) => {
+        const x = segment.x * snakeConfig.gridSize;
+        const y = segment.y * snakeConfig.gridSize;
+
+        // Draw snake segment
+        if (index === 0) {
+            // Head is brighter
+            ctx.fillStyle = '#27AE60';
+        } else {
+            ctx.fillStyle = '#2ECC71';
+        }
+        ctx.fillRect(x, y, snakeConfig.gridSize - 2, snakeConfig.gridSize - 2);
+
+        // Add border
+        ctx.strokeStyle = '#229954';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, snakeConfig.gridSize - 2, snakeConfig.gridSize - 2);
+
+        // Add eye dots on head
+        if (index === 0) {
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(x + 5, y + 5, 3, 3);
+            ctx.fillRect(x + 12, y + 5, 3, 3);
+        }
+    });
 }
 
 // Draw bricks
@@ -200,6 +258,54 @@ function moveBall() {
     }
 }
 
+// Move snake
+function moveSnake(currentTime) {
+    if (currentTime - lastSnakeMove < snakeConfig.speed) {
+        return;
+    }
+    lastSnakeMove = currentTime;
+
+    // Update direction
+    snake.direction = { ...snake.nextDirection };
+
+    // Calculate new head position
+    const head = snake.segments[0];
+    const newHead = {
+        x: head.x + snake.direction.x,
+        y: head.y + snake.direction.y
+    };
+
+    // Wrap around walls
+    if (newHead.x < 0) newHead.x = Math.floor(canvas.width / snakeConfig.gridSize) - 1;
+    if (newHead.x >= Math.floor(canvas.width / snakeConfig.gridSize)) newHead.x = 0;
+    if (newHead.y < 0) newHead.y = Math.floor(canvas.height / snakeConfig.gridSize) - 1;
+    if (newHead.y >= Math.floor(canvas.height / snakeConfig.gridSize)) newHead.y = 0;
+
+    // Add new head
+    snake.segments.unshift(newHead);
+
+    // Remove tail (don't grow)
+    snake.segments.pop();
+}
+
+// Check if snake ate the ball
+function checkSnakeEatsBall() {
+    const head = snake.segments[0];
+    const headCenterX = head.x * snakeConfig.gridSize + snakeConfig.gridSize / 2;
+    const headCenterY = head.y * snakeConfig.gridSize + snakeConfig.gridSize / 2;
+
+    const distance = Math.sqrt(
+        Math.pow(ball.x - headCenterX, 2) +
+        Math.pow(ball.y - headCenterY, 2)
+    );
+
+    // If snake head is close enough to ball center
+    if (distance < ball.radius + snakeConfig.gridSize / 2) {
+        // Win the level!
+        nextLevel();
+    }
+}
+
 // Brick collision detection
 function brickCollision() {
     for (let c = 0; c < brickConfig.columnCount; c++) {
@@ -284,6 +390,7 @@ function draw() {
     drawBricks();
     drawPaddle();
     drawBall();
+    drawSnake();
     drawInfo();
 
     // Show pause message
@@ -299,11 +406,13 @@ function draw() {
 }
 
 // Update game
-function update() {
+function update(currentTime = 0) {
     if (gameRunning && !gamePaused) {
         movePaddle();
         moveBall();
+        moveSnake(currentTime);
         brickCollision();
+        checkSnakeEatsBall();
     }
 
     draw();
@@ -315,16 +424,29 @@ function update() {
 
 // Keyboard controls
 function keyDown(e) {
-    if (e.key === 'Right' || e.key === 'ArrowRight' || e.key === 'd') {
+    // Paddle controls (arrows only)
+    if (e.key === 'Right' || e.key === 'ArrowRight') {
         paddle.dx = paddle.speed;
-    } else if (e.key === 'Left' || e.key === 'ArrowLeft' || e.key === 'a') {
+    } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
         paddle.dx = -paddle.speed;
+    }
+
+    // Snake controls (q, w, s, z)
+    // q = left, w = up, s = right, z = down
+    if (e.key === 'q' && snake.direction.x !== 1) {
+        snake.nextDirection = { x: -1, y: 0 };
+    } else if (e.key === 'w' && snake.direction.y !== 1) {
+        snake.nextDirection = { x: 0, y: -1 };
+    } else if (e.key === 's' && snake.direction.x !== -1) {
+        snake.nextDirection = { x: 1, y: 0 };
+    } else if (e.key === 'z' && snake.direction.y !== -1) {
+        snake.nextDirection = { x: 0, y: 1 };
     }
 }
 
 function keyUp(e) {
-    if (e.key === 'Right' || e.key === 'ArrowRight' || e.key === 'd' ||
-        e.key === 'Left' || e.key === 'ArrowLeft' || e.key === 'a') {
+    if (e.key === 'Right' || e.key === 'ArrowRight' ||
+        e.key === 'Left' || e.key === 'ArrowLeft') {
         paddle.dx = 0;
     }
 }
@@ -360,6 +482,8 @@ function resetGame() {
     paddle.x = canvas.width / 2 - 50;
     resetBall();
     initBricks();
+    initSnake();
+    lastSnakeMove = 0;
     draw();
 
     document.getElementById('pauseBtn').textContent = 'Pause';
